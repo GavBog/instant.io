@@ -2,7 +2,7 @@ const createTorrent = require('create-torrent')
 const debug = require('debug')('instant.io')
 const dragDrop = require('drag-drop')
 const escapeHtml = require('escape-html')
-const get = require('simple-get')
+// const get = require('simple-get')
 const formatDistance = require('date-fns/formatDistance')
 const path = require('path')
 const prettierBytes = require('prettier-bytes')
@@ -97,22 +97,33 @@ function init () {
 }
 
 function getRtcConfig (cb) {
-  // WARNING: This is *NOT* a public endpoint. Do not depend on it in your app.
-  get.concat({
-    url: '/__rtcConfig__',
-    timeout: 5000
-  }, function (err, res, data) {
-    if (err || res.statusCode !== 200) {
-      cb(new Error('Could not get WebRTC config from server. Using default (without TURN).'))
-    } else {
-      try {
-        data = JSON.parse(data)
-      } catch (err) {
-        return cb(new Error('Got invalid WebRTC config from server: ' + data))
+  // // WARNING: This is *NOT* a public endpoint. Do not depend on it in your app.
+  // get.concat({
+  //   url: '/__rtcConfig__',
+  //   timeout: 5000
+  // }, function (err, res, data) {
+  //   if (err || res.statusCode !== 200) {
+  //     cb(new Error('Could not get WebRTC config from server. Using default (without TURN).'))
+  //   } else {
+  //     try {
+  //       data = JSON.parse(data)
+  //     } catch (err) {
+  //       return cb(new Error('Got invalid WebRTC config from server: ' + data))
+  //     }
+  //     debug('got rtc config: %o', data.rtcConfig)
+  //     cb(null, data.rtcConfig)
+  //   }
+  // })
+
+  cb(null, {
+    iceServers: [
+      {
+        urls: [
+          'stun:stun.l.google.com:19302',
+          'stun:stun.cloudflare.com:3478'
+        ]
       }
-      debug('got rtc config: %o', data.rtcConfig)
-      cb(null, data.rtcConfig)
-    }
+    ]
   })
 }
 

@@ -222,13 +222,31 @@ function onTorrent (torrent) {
   setInterval(updateSpeed, 5000)
   updateSpeed()
 
-  torrent.files.forEach(function (file) {
+  torrent.files.forEach(file => {
+    const origStream = file.createReadStream.bind(file)
+    file.createReadStream = opts => {
+      const stream = origStream(opts)
+
+      if (!stream.setEncoding) {
+        stream.setEncoding = enc => {
+          const origOn = stream.on.bind(stream)
+          stream.on = (ev, cb) => ev === 'data'
+            ? origOn(ev, chunk => cb(chunk.toString(enc)))
+            : origOn(ev, cb)
+          return stream
+        }
+      }
+      return stream
+    }
+
     // append file
-    file.appendTo(util.logElem, {
-      maxBlobLength: 2 * 1000 * 1000 * 1000 // 2 GB
-    }, function (err, elem) {
-      if (err) return util.error(err)
-    })
+    try {
+      file.appendTo(util.logElem, { maxBlobLength: 2e9 }, err => {
+        if (err) util.error(err)
+      })
+    } catch (err) {
+      console.warn(`Browser blocked preview for ${file.name}:`, err.message)
+    }
 
     // append download link
     file.getBlobURL(function (err, url) {

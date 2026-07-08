@@ -5,3 +5,10 @@ secret/*
 
 static/main.css
 static/bundle.js
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
